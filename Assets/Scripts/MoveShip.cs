@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class MoveShip : MonoBehaviour
 {
-
+    public Transform playerBullet;
     public float Speed = 0f;
     private float movex;
     private Rigidbody2D rb2d;
@@ -22,6 +22,11 @@ public class MoveShip : MonoBehaviour
 	    var v3 = rb2d.transform.position;
 	    v3.x = Mathf.Clamp(v3.x + (movex * Speed), -4.5f, 4.5f);
 	    rb2d.transform.position = v3;
+
+	    if (Input.GetKeyUp(KeyCode.Space))
+	    {
+	        Instantiate(playerBullet, GetComponent<Transform>().position, Quaternion.identity);
+	    }
 	}
 
 }

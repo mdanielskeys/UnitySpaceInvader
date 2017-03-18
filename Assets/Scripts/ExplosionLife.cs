@@ -7,7 +7,6 @@ public class ExplosionLife : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
 	{
-	    //Destroy(gameObject, 60f);
 	}
 	
 }

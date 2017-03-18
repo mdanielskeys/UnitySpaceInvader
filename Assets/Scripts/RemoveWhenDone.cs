@@ -17,7 +17,6 @@ public class RemoveWhenDone : MonoBehaviour
 	void Update ()
 	{
 	    var asi = animator.GetCurrentAnimatorStateInfo(0);
-        Debug.Log(asi.normalizedTime);
         if (asi.normalizedTime >= 1)
 	    {
 	        Destroy(gameObject);

@@ -9,10 +9,12 @@ public class MoveShip : MonoBehaviour
     public float Speed = 0f;
     private float movex;
     private Rigidbody2D rb2d;
+    private GameGridManager _manager;
 
 	// Use this for initialization
 	void Start ()
 	{
+	    _manager = GetComponentInParent<GameGridManager>();
 	    rb2d = GetComponent<Rigidbody2D>();
 	}
 	
@@ -29,6 +31,7 @@ public class MoveShip : MonoBehaviour
 	        start.y += .5f;
 	        Instantiate(playerBullet, start, Quaternion.identity);
 	    }
+
 	}
 
 }

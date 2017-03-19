@@ -52,5 +52,11 @@ public class BulletLife : MonoBehaviour
                 _manager.ReleaseBulletCount();
             }
         }
+
+        if (other.tag == "Player")
+        {
+            Debug.Log("Setup out of player view");
+            _manager.FlyOutOfView();
+        }
     }
 }

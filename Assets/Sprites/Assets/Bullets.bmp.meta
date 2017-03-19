@@ -1,10 +1,12 @@
 fileFormatVersion: 2
 guid: 93d859427cfd412478547c090e5fde36
-timeCreated: 1489847658
+timeCreated: 1489887336
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
     21300000: Bullets_0
+    21300002: Bullets_1
+    21300004: Bullets_2
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -86,6 +88,32 @@ TextureImporter:
         y: 169
         width: 11
         height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Bullets_1
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 145
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Bullets_2
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 3
+        width: 5
+        height: 8
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

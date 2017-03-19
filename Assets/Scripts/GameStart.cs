@@ -20,7 +20,6 @@ public class GameStart : MonoBehaviour
     void Start ()
     {
         _manager = GetComponent<GameGridManager>();
-        _manager.marchSpeed = .01f;
 
 	    _state = GameState.GameOver;
     }

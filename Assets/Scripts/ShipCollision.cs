@@ -19,7 +19,7 @@ public class ShipCollision : MonoBehaviour
         {
             if (_manager != null)
             {
-                Debug.Log("Call SetGameOver");
+                //Debug.Log("Call SetGameOver");
                 _manager.FlyOutOfView();
             }
 

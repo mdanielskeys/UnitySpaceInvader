@@ -101,7 +101,7 @@ public class GameGridManager : MonoBehaviour
             {
                 if (topShip.transform.position.y > 4.0f && elapsedTime > elaspedTimeThresh)
                 {
-                    Debug.Log("Call Advance");
+                    // Debug.Log("Call Advance");
                     elapsedTime = 0f;
                     AdvanceEnemies();
                 }
@@ -110,10 +110,10 @@ public class GameGridManager : MonoBehaviour
 
         if (_state == GameState.FlyOutOfView)
         {
-            Debug.Log(string.Format("topship.position {0}", topShip.transform.position.y));
+            //Debug.Log(string.Format("topship.position {0}", topShip.transform.position.y));
             if (topShip.transform.position.y > -6.0f && elapsedTime > elaspedTimeThresh)
             {
-                Debug.Log("Call Advance");
+                //Debug.Log("Call Advance");
                 elaspedTimeThresh = SMOOTH_TIME; 
                 elapsedTime = 0f;
                 AdvanceEnemies();
@@ -233,7 +233,7 @@ public class GameGridManager : MonoBehaviour
             column += 1f;
             if (column >= 4.5f)
             {
-                Debug.Log(string.Format("Column {0}", column));
+                // Debug.Log(string.Format("Column {0}", column));
                 column = -4.5f;
                 rowCount += 1;
             }

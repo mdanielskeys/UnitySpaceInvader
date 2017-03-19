@@ -8,6 +8,7 @@ public class BulletLife : MonoBehaviour
     public Transform explosion;
     private Rigidbody2D _rb2D;
     private GameGridManager _manager;
+    public MoveShip _moveShip;
 
     // Use this for initialization
     void Start () {
@@ -29,10 +30,17 @@ public class BulletLife : MonoBehaviour
     void Update () {
         if (_rb2D.transform.position.y > 6f || _rb2D.transform.position.y < -6f)
         {
-            Debug.Log("Detroy bullet!");
             if (_manager != null)
             {
                 _manager.ReleaseBulletCount();
+            }
+
+            if (gameObject.tag == "PlayerFire")
+            {
+                if (_moveShip != null)
+                {
+                    _moveShip.BulletCallback();
+                }
             }
             Destroy(gameObject);
         }
@@ -42,20 +50,24 @@ public class BulletLife : MonoBehaviour
     {
         if (other.tag == EnemyTag)
         {
-            Debug.Log("Bullet collision");
+            //Debug.Log("Bullet collision");
             var v3 = other.gameObject.transform.position;
             Destroy(other.gameObject);
             Instantiate(explosion, v3, Quaternion.identity);
             Destroy(gameObject);
             if (_manager != null)
-            {
+            {                
                 _manager.ReleaseBulletCount();
+            }
+            if (_moveShip != null)
+            {
+                _moveShip.BulletCallback();
             }
         }
 
         if (other.tag == "Player")
         {
-            Debug.Log("Setup out of player view");
+            //Debug.Log("Setup out of player view");
             _manager.FlyOutOfView();
         }
     }

@@ -9,6 +9,13 @@ public class GameGridManager : MonoBehaviour
     private const float REGULAR_ADVANCE = -0.2f;
     private const float PAUSE = 4.0f;
     private const float SMOOTH_TIME = .01f;
+    private const float LEVEL_DISPLAY_TIME = 2.0f;
+    private const float HIGH_SPEED_MARCH = 0.04f;
+    private const float MEDIUM_SPEED_MARCH = 0.02f;
+    private const float REG_SPEED_MARCH = 0.01f;
+    private const int HIGH_FIRE_RATE = 7;
+    private const int MED_FIRE_RATE = 5;
+    private const int LOW_FIRE_RATE = 3;
     public float marchSpeed;
     public int maxFireCount;
 
@@ -20,7 +27,9 @@ public class GameGridManager : MonoBehaviour
     public Text gameOverText;
     public Text instructionText;
     public Text playerScoreText;
+    public Text levelDisplay;
 
+    private int gameLevel;
     private int playerScore;
     private float elaspedTimeThresh;
     private float elapsedTime;
@@ -44,7 +53,8 @@ public class GameGridManager : MonoBehaviour
         GameOver = 1,
         GameRunning = 2,
         FlyInView = 3,
-        FlyOutOfView
+        FlyOutOfView,
+        DisplayLevel
     };
 
     private GameState _state;
@@ -54,6 +64,8 @@ public class GameGridManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        levelDisplay.enabled = false;
+
         _manager = GetComponent<GameGridManager>();
 
         SetGameOver();
@@ -76,12 +88,33 @@ public class GameGridManager : MonoBehaviour
 
         if (_state == GameState.GameRunning)
         {
-            if (EnemyCount() <= 0)
+            var direction = 1;
+            if (Math.Abs(marchSpeed) != marchSpeed)
+            {
+                direction = -1;
+            }
+            var ecount = EnemyCount();
+            if (ecount <= 0)
             {
                 if (elapsedTime > 5.0f)
                 {
-                    SetGrid();
+                    AddGameLevel();
                 }
+            }
+            else if (ecount < 10)
+            {
+                marchSpeed = HIGH_SPEED_MARCH * direction;
+                maxFireCount = HIGH_FIRE_RATE;
+            }
+            else if (ecount < 20)
+            {
+                marchSpeed = MEDIUM_SPEED_MARCH * direction;
+                maxFireCount = MED_FIRE_RATE;
+            }
+            else
+            {
+                marchSpeed = REG_SPEED_MARCH * direction;
+                maxFireCount = LOW_FIRE_RATE;
             }
 
             fireInterval += Time.deltaTime;
@@ -128,19 +161,34 @@ public class GameGridManager : MonoBehaviour
             }
         }
 
+        if (_state == GameState.DisplayLevel)
+        {
+            if (elapsedTime > elaspedTimeThresh)
+                FlyShipsInView();
+        }
     }
 
-    public void SetGameState(GameState state)
+    private void AddGameLevel()
     {
-        _state = state;
+        gameLevel += 1;
+        SetGrid();
+    }
+
+    private void SetDisplayLevel()
+    {
+        _state = GameState.DisplayLevel;
+        elaspedTimeThresh = LEVEL_DISPLAY_TIME;
+        elapsedTime = 0f;
+        levelDisplay.enabled = true;
+        WriteGameLevel();
     }
 
     private void SetGameOverText(bool isOn)
     {
         gameOverText.enabled = isOn;
         instructionText.enabled = isOn;
-
     }
+
     public void SetGameOver()
     {
         SetGameOverText(true);
@@ -155,7 +203,9 @@ public class GameGridManager : MonoBehaviour
     public void ResetPlayerScore()
     {
         playerScore = 0;
+        gameLevel = 1;
         WritePlayerScore();
+        WriteGameLevel();
     }
 
     public void UpdatePlayerScore(int pointValue)
@@ -167,6 +217,16 @@ public class GameGridManager : MonoBehaviour
     private void WritePlayerScore()
     {
         playerScoreText.text = string.Format("Score: {0:d8}", playerScore);
+    }
+
+    private void WriteGameLevel()
+    {
+        _state = GameState.DisplayLevel;
+        elapsedTime = 0;
+        elaspedTimeThresh = LEVEL_DISPLAY_TIME;
+        levelDisplay.enabled = true;
+
+        levelDisplay.text = string.Format("Level: {0:d3}", gameLevel);
     }
 
     private void StartLevel1()
@@ -270,7 +330,7 @@ public class GameGridManager : MonoBehaviour
                 rowCount += 1;
             }
         }
-        FlyShipsInView();
+        SetDisplayLevel();
     }
 
     private int EnemyCount()
@@ -294,6 +354,9 @@ public class GameGridManager : MonoBehaviour
         elaspedTimeThresh = SMOOTH_TIME;
         _state = GameState.FlyInView;
         _enemyAdvanceSpeed = SMOOTH_ADVANCE;
+
+        levelDisplay.enabled = false;
+        SetGameOverText(false);
     }
 
     private void FindTopShip()
@@ -326,6 +389,7 @@ public class GameGridManager : MonoBehaviour
 
     public void AdvanceEnemies()
     {
+        Debug.Log(string.Format("Advance {0}", _enemyAdvanceSpeed));
         for (var idx = 0; idx < transform.childCount; ++idx)
         {
             var enemy = transform.GetChild(idx);

@@ -30,7 +30,10 @@ public class BulletLife : MonoBehaviour
         if (_rb2D.transform.position.y > 6f || _rb2D.transform.position.y < -6f)
         {
             Debug.Log("Detroy bullet!");
-            _manager.ReleaseBulletCount();
+            if (_manager != null)
+            {
+                _manager.ReleaseBulletCount();
+            }
             Destroy(gameObject);
         }
     }
@@ -44,7 +47,10 @@ public class BulletLife : MonoBehaviour
             Destroy(other.gameObject);
             Instantiate(explosion, v3, Quaternion.identity);
             Destroy(gameObject);
-            _manager.ReleaseBulletCount();
+            if (_manager != null)
+            {
+                _manager.ReleaseBulletCount();
+            }
         }
     }
 }

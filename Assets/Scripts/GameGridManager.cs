@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -20,7 +21,11 @@ public class GameGridManager : MonoBehaviour
     public GameObject Enemy2Ship;
     public GameObject Enemy3Ship;
     public Canvas gameOver;
+    public Text gameOverText;
+    public Text instructionText;
+    public Text playerScoreText;
 
+    private int playerScore;
     private float elaspedTimeThresh;
     private float elapsedTime;
     private int fireCount;
@@ -118,6 +123,13 @@ public class GameGridManager : MonoBehaviour
                 elapsedTime = 0f;
                 AdvanceEnemies();
             }
+            else
+            {
+                if (topShip.transform.position.y <= -6.0f)
+                {
+                    SetGameOver();
+                }
+            }
         }
 
     }
@@ -127,9 +139,15 @@ public class GameGridManager : MonoBehaviour
         _state = state;
     }
 
+    private void SetGameOverText(bool isOn)
+    {
+        gameOverText.enabled = isOn;
+        instructionText.enabled = isOn;
+
+    }
     public void SetGameOver()
     {
-        gameOver.gameObject.SetActive(true);
+        SetGameOverText(true);
         _state = GameState.GameOver;
     }
 
@@ -138,13 +156,31 @@ public class GameGridManager : MonoBehaviour
         return _state;
     }
 
+    public void ResetPlayerScore()
+    {
+        playerScore = 0;
+        WritePlayerScore();
+    }
+
+    public void UpdatePlayerScore(int pointValue)
+    {
+        playerScore += pointValue;
+        WritePlayerScore();
+    }
+
+    private void WritePlayerScore()
+    {
+        playerScoreText.text = string.Format("Score: {0:d8}", playerScore);
+    }
+
     private void StartLevel1()
     {
-        gameOver.gameObject.SetActive(false);
+        SetGameOverText(false);
         var player = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
         player.transform.parent = gameObject.transform;
 
         _manager.SetGrid();
+        ResetPlayerScore();
     }
 
     public void ReleaseBulletCount()

@@ -30,6 +30,15 @@ public class EnemyActions : MonoBehaviour
         transform.position = _lastPos;
     }
 
+    public void DestroyedByPlayer()
+    {
+        if (_manager != null)
+        {
+            _manager.UpdatePlayerScore(150);
+        }
+        Destroy(gameObject);
+    }
+
     public void Advance(float y)
     {
         _lastPos = transform.position;
@@ -37,8 +46,4 @@ public class EnemyActions : MonoBehaviour
         transform.position = _lastPos;
     }
 
-    public void Suicide()
-    {
-        Destroy(gameObject);
-    }
 }

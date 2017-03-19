@@ -52,7 +52,12 @@ public class BulletLife : MonoBehaviour
         {
             //Debug.Log("Bullet collision");
             var v3 = other.gameObject.transform.position;
-            Destroy(other.gameObject);
+            var ebehavior = other.gameObject.GetComponent<EnemyActions>();
+            if (ebehavior != null)
+            {
+                ebehavior.DestroyedByPlayer();
+            }
+
             Instantiate(explosion, v3, Quaternion.identity);
             Destroy(gameObject);
             if (_manager != null)

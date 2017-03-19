@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Boo.Lang.Runtime.DynamicDispatching;
-using UnityEngine;
+﻿using UnityEngine;
 
 
 public class MoveShip : MonoBehaviour
@@ -53,8 +49,4 @@ public class MoveShip : MonoBehaviour
 
 	}
 
-    private void BulletDiedDelagate()
-    {
-        bulletCount -= 1;
-    }
 }

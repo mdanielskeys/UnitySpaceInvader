@@ -24,6 +24,11 @@ public class EnemyActions : MonoBehaviour
                 _manager.AdvanceEnemies();
             }
             _lastPos.x += _manager.marchSpeed;
+
+            if (_lastPos.y + _manager.EnemyAdvanceSpeed < -5)
+            {
+                _manager.EarthDestroyed();
+            }
         }
         transform.position = _lastPos;
     }

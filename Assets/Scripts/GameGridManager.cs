@@ -13,12 +13,15 @@ public class GameGridManager : MonoBehaviour
     private const float HIGH_SPEED_MARCH = 0.04f;
     private const float MEDIUM_SPEED_MARCH = 0.02f;
     private const float REG_SPEED_MARCH = 0.01f;
+    private const float HIGH_FIRE = 0.5f;
+    private const float MEDIUM_FIRE = 0.7f;
+    private const float REG_FIRE = 0.8f;
     private const int HIGH_FIRE_RATE = 7;
     private const int MED_FIRE_RATE = 5;
     private const int LOW_FIRE_RATE = 3;
     public float marchSpeed;
     public int maxFireCount;
-
+    
     public GameObject DoomdayShip;
     public GameObject Enemy1Ship;
     public GameObject Enemy2Ship;
@@ -29,6 +32,7 @@ public class GameGridManager : MonoBehaviour
     public Text playerScoreText;
     public Text levelDisplay;
 
+    private float fireThreshold;
     private int gameLevel;
     private int playerScore;
     private float elaspedTimeThresh;
@@ -46,7 +50,8 @@ public class GameGridManager : MonoBehaviour
     };
 
     private GameObject topShip;
-    private float _enemyAdvanceSpeed;
+    public float EnemyAdvanceSpeed;
+    private GameObject playerShipInstance;
 
     public enum GameState
     {
@@ -105,16 +110,19 @@ public class GameGridManager : MonoBehaviour
             {
                 marchSpeed = HIGH_SPEED_MARCH * direction;
                 maxFireCount = HIGH_FIRE_RATE;
+                fireThreshold = HIGH_FIRE;
             }
             else if (ecount < 20)
             {
                 marchSpeed = MEDIUM_SPEED_MARCH * direction;
                 maxFireCount = MED_FIRE_RATE;
+                fireThreshold = MEDIUM_FIRE;
             }
             else
             {
                 marchSpeed = REG_SPEED_MARCH * direction;
                 maxFireCount = LOW_FIRE_RATE;
+                fireThreshold = REG_FIRE;
             }
 
             fireInterval += Time.deltaTime;
@@ -128,7 +136,7 @@ public class GameGridManager : MonoBehaviour
         {
             if (topShip.transform.position.y <= 4.0f && elapsedTime > 1f)
             {
-                _enemyAdvanceSpeed = REGULAR_ADVANCE;
+                EnemyAdvanceSpeed = REGULAR_ADVANCE;
                 _state = GameState.GameRunning;
             }
             else
@@ -232,8 +240,8 @@ public class GameGridManager : MonoBehaviour
     private void StartLevel1()
     {
         SetGameOverText(false);
-        var player = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
-        player.transform.parent = gameObject.transform;
+        playerShipInstance = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
+        playerShipInstance.transform.parent = gameObject.transform;
 
         _manager.SetGrid();
         ResetPlayerScore();
@@ -251,7 +259,7 @@ public class GameGridManager : MonoBehaviour
         {
             var enemy = transform.GetChild(idx);
 
-            if (fireCount < maxFireCount && Random.value > 0.8f)
+            if (fireCount < maxFireCount && Random.value > fireThreshold)
             {
                 var enemyScript = enemy.GetComponent<EnemyActions>();
                 if (enemyScript != null)
@@ -353,7 +361,7 @@ public class GameGridManager : MonoBehaviour
         elapsedTime = 0f;
         elaspedTimeThresh = SMOOTH_TIME;
         _state = GameState.FlyInView;
-        _enemyAdvanceSpeed = SMOOTH_ADVANCE;
+        EnemyAdvanceSpeed = SMOOTH_ADVANCE;
 
         levelDisplay.enabled = false;
         SetGameOverText(false);
@@ -384,12 +392,21 @@ public class GameGridManager : MonoBehaviour
         elapsedTime = 0f;
         elaspedTimeThresh = PAUSE;
         _state = GameState.FlyOutOfView;
-        _enemyAdvanceSpeed = SMOOTH_ADVANCE;
+        EnemyAdvanceSpeed = SMOOTH_ADVANCE;
+    }
+
+    public void EarthDestroyed()
+    {
+        var shipManager = playerShipInstance.GetComponent<ShipCollision>();
+        if (shipManager != null)
+        {
+            shipManager.PlayerHit(this);
+        }
     }
 
     public void AdvanceEnemies()
     {
-        Debug.Log(string.Format("Advance {0}", _enemyAdvanceSpeed));
+        Debug.Log(string.Format("Advance {0}", EnemyAdvanceSpeed));
         for (var idx = 0; idx < transform.childCount; ++idx)
         {
             var enemy = transform.GetChild(idx);
@@ -398,7 +415,7 @@ public class GameGridManager : MonoBehaviour
                 var enemyScript = enemy.GetComponent<EnemyActions>();
                 if (enemyScript != null)
                 {
-                    enemyScript.Advance(_enemyAdvanceSpeed);
+                    enemyScript.Advance(EnemyAdvanceSpeed);
                 }
             }
         }

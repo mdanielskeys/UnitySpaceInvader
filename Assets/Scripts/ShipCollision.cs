@@ -29,7 +29,7 @@ public class ShipCollision : MonoBehaviour
             if (_manager != null)
             {
                 //Debug.Log("Call SetGameOver");
-                _manager.FlyOutOfView();
+                // _manager.FlyOutOfView();
             }
 
             var v3 = other.gameObject.transform.position;

@@ -21,7 +21,8 @@ public class GameGridManager : MonoBehaviour
     private const int LOW_FIRE_RATE = 3;
     public float marchSpeed;
     public int maxFireCount;
-    
+    public int NumberOfLives;
+
     public GameObject DoomdayShip;
     public GameObject Enemy1Ship;
     public GameObject Enemy2Ship;
@@ -31,6 +32,7 @@ public class GameGridManager : MonoBehaviour
     public Text instructionText;
     public Text playerScoreText;
     public Text levelDisplay;
+    public Text playerCount;
 
     private float fireThreshold;
     private int gameLevel;
@@ -164,7 +166,16 @@ public class GameGridManager : MonoBehaviour
             {
                 if (topShip.transform.position.y <= -6.0f)
                 {
-                    SetGameOver();
+                    if (NumberOfLives > 0)
+                    {
+                        ResetShipsToTop();
+                        InstantiateNewPlayer();
+                        FlyShipsInView();
+                    }
+                    else
+                    {
+                        SetGameOver();
+                    }
                 }
             }
         }
@@ -222,6 +233,10 @@ public class GameGridManager : MonoBehaviour
         WritePlayerScore();
     }
 
+    private void WritePlayerCount()
+    {
+        playerCount.text = string.Format("Player Ships: {0:d2}", NumberOfLives);
+    }
     private void WritePlayerScore()
     {
         playerScoreText.text = string.Format("Score: {0:d8}", playerScore);
@@ -239,12 +254,19 @@ public class GameGridManager : MonoBehaviour
 
     private void StartLevel1()
     {
+        NumberOfLives = 3;
+        WritePlayerCount();
         SetGameOverText(false);
-        playerShipInstance = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
-        playerShipInstance.transform.parent = gameObject.transform;
+        InstantiateNewPlayer();
 
         _manager.SetGrid();
         ResetPlayerScore();
+    }
+
+    private void InstantiateNewPlayer()
+    {
+        playerShipInstance = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
+        playerShipInstance.transform.parent = gameObject.transform;
     }
 
     public void ReleaseBulletCount()
@@ -356,6 +378,22 @@ public class GameGridManager : MonoBehaviour
         return count;
     }
 
+    private void ResetShipsToTop()
+    {
+        for (var idx = 0; idx < transform.childCount; ++idx)
+        {
+            var enemy = transform.GetChild(idx);
+            if (enemy.tag == "Enemy")
+            {
+                var enemyScript = enemy.GetComponent<EnemyActions>();
+                if (enemyScript != null)
+                {
+                    enemyScript.Advance(23.0f);
+                }
+            }
+        }
+    }
+
     private void FlyShipsInView()
     {
         elapsedTime = 0f;
@@ -388,6 +426,8 @@ public class GameGridManager : MonoBehaviour
     }
     public void FlyOutOfView()
     {
+        NumberOfLives -= 1;
+        WritePlayerCount();
         FindTopShip();
         elapsedTime = 0f;
         elaspedTimeThresh = PAUSE;

@@ -7,11 +7,23 @@ public class BulletLife : MonoBehaviour
     private Rigidbody2D _rb2D;
     private GameGridManager _manager;
     public MoveShip _moveShip;
+    public AudioClip fireSound;
+    private AudioSource _audioSouce;
+    public AudioEvent m_EnemyFireEvent;
 
     // Use this for initialization
     void Start () {
         _rb2D = GetComponent<Rigidbody2D>();
         _manager = GetComponentInParent<GameGridManager>();
+        _audioSouce = GetComponent<AudioSource>();
+        if (_audioSouce != null && m_EnemyFireEvent != null)
+        {
+            m_EnemyFireEvent.Play(_audioSouce);
+        }
+        else if (_audioSouce != null)
+        {
+            _audioSouce.PlayOneShot(fireSound);
+        }
 
         if (EnemyTag == "Player")
         {

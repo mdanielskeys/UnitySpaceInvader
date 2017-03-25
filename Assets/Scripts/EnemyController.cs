@@ -141,7 +141,7 @@ public class EnemyController : ScriptableObject {
     public bool FireRandomWeapon(float playerXPos)
     {
         fireInterval += Time.deltaTime;
-        if (fireInterval < 1.0f) return false;
+        if (fireInterval < 0.5f) return false;
         if (CurrentShotCount >= MaxNumberOfShots) return false;
         if (_enemyShips == null) return false;
 
@@ -150,8 +150,13 @@ public class EnemyController : ScriptableObject {
         foreach (var enemy in _enemyShips)
         {
             var pos = enemy.transform.position;
-            var distance = Mathf.Abs(playerXPos - pos.x);            
-            if (distance < 0.4)
+            var distance = Mathf.Abs(playerXPos - pos.x);
+            if (distance < 0.8)
+            {
+                wkThreshold -= .5f;
+            }
+
+            if (Random.value > wkThreshold)
             {
                 var enemyScript = enemy.GetComponent<EnemyActions>();
                 if (enemyScript != null)

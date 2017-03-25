@@ -15,7 +15,7 @@ public class EnemyController : ScriptableObject {
 
     private List<GameObject> _enemyShips;
 
-    public int StartYPos = 6;
+    public int StartYPos = 12;
     public float StartingColumn = -4.0f;
     public int MaxColumnCount = 11;
     public float ShipHSpacing = 0.8f;

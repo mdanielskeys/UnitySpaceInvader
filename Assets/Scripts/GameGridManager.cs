@@ -42,18 +42,9 @@ public class GameGridManager : MonoBehaviour
     private int fireCount;
     private float fireInterval;
 
-    private int[] gameGrid =
-    {
-        0, 0, 1, 1, 0, 1, 1, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1
-    };
-
     private GameObject topShip;
-    public float EnemyAdvanceSpeed;
     private GameObject playerShipInstance;
+    private EnemyController enemyController;
 
     public enum GameState
     {
@@ -75,6 +66,16 @@ public class GameGridManager : MonoBehaviour
 
         _manager = GetComponent<GameGridManager>();
 
+        enemyController = new EnemyController
+        {
+            GameManager = gameObject,
+            DoomdayShip = DoomdayShip,
+            Enemy1Ship = Enemy1Ship,
+            Enemy2Ship = Enemy2Ship,
+            Enemy3Ship = Enemy3Ship,
+            MarchSpeed = marchSpeed
+        };
+
         SetGameOver();
     }
 
@@ -95,11 +96,11 @@ public class GameGridManager : MonoBehaviour
 
         if (_state == GameState.GameRunning)
         {
-            var direction = 1;
-            if (Math.Abs(marchSpeed) != marchSpeed)
-            {
-                direction = -1;
+            if (enemyController.ShouldAdvance())
+            {                
+                enemyController.AdvanceEnemies();
             }
+
             var ecount = EnemyCount();
             if (ecount <= 0)
             {
@@ -110,19 +111,19 @@ public class GameGridManager : MonoBehaviour
             }
             else if (ecount < 10)
             {
-                marchSpeed = HIGH_SPEED_MARCH * direction;
+                enemyController.MarchSpeed = HIGH_SPEED_MARCH;
                 maxFireCount = HIGH_FIRE_RATE;
                 fireThreshold = HIGH_FIRE;
             }
             else if (ecount < 20)
             {
-                marchSpeed = MEDIUM_SPEED_MARCH * direction;
+                enemyController.MarchSpeed = MEDIUM_SPEED_MARCH;
                 maxFireCount = MED_FIRE_RATE;
                 fireThreshold = MEDIUM_FIRE;
             }
             else
             {
-                marchSpeed = REG_SPEED_MARCH * direction;
+                enemyController.MarchSpeed = REG_SPEED_MARCH;
                 maxFireCount = LOW_FIRE_RATE;
                 fireThreshold = REG_FIRE;
             }
@@ -132,20 +133,20 @@ public class GameGridManager : MonoBehaviour
             {
                 CheckWeapons();
             }
+            enemyController.MarchEnemies();
         }
 
         if (_state == GameState.FlyInView)
         {
-            if (topShip.transform.position.y <= 4.0f && elapsedTime > 1f)
+            if (enemyController.AreEnemiesInStartPos() && elapsedTime > 1f)
             {
-                EnemyAdvanceSpeed = REGULAR_ADVANCE;
+                enemyController.EnemyAdvanceSpeed = REGULAR_ADVANCE;
                 _state = GameState.GameRunning;
             }
             else
             {
-                if (topShip.transform.position.y > 4.0f && elapsedTime > elaspedTimeThresh)
+                if (!enemyController.AreEnemiesInStartPos() && elapsedTime > elaspedTimeThresh)
                 {
-                    // Debug.Log("Call Advance");
                     elapsedTime = 0f;
                     AdvanceEnemies();
                 }
@@ -155,7 +156,7 @@ public class GameGridManager : MonoBehaviour
         if (_state == GameState.FlyOutOfView)
         {
             //Debug.Log(string.Format("topship.position {0}", topShip.transform.position.y));
-            if (topShip.transform.position.y > -6.0f && elapsedTime > elaspedTimeThresh)
+            if (enemyController.AreEnemiesInView() && elapsedTime > elaspedTimeThresh)
             {
                 //Debug.Log("Call Advance");
                 elaspedTimeThresh = SMOOTH_TIME; 
@@ -164,7 +165,7 @@ public class GameGridManager : MonoBehaviour
             }
             else
             {
-                if (topShip.transform.position.y <= -6.0f)
+                if (enemyController.AreEnemiesInOffscreenPos())
                 {
                     if (NumberOfLives > 0)
                     {
@@ -274,124 +275,16 @@ public class GameGridManager : MonoBehaviour
         fireCount = Math.Max(fireCount - 1, 0);
     }
 
-    private void CheckWeapons()
-    {
-        fireInterval = 0f;
-        for (var idx = transform.childCount -1; idx > 0; --idx)
-        {
-            var enemy = transform.GetChild(idx);
-
-            if (fireCount < maxFireCount && Random.value > fireThreshold)
-            {
-                var enemyScript = enemy.GetComponent<EnemyActions>();
-                if (enemyScript != null)
-                {
-                    var tranform = enemy.transform;
-                    var bullet = Instantiate(enemyScript.EnemyBullet, tranform.position, Quaternion.identity);
-                    bullet.transform.parent = gameObject.transform;
-                    fireCount += 1;
-                    break;
-                }
-            }
-        }
-    }
-
-    private void ClearExistingEnemies()
-    {
-        topShip = null;
-        for (var idx = 0; idx < transform.childCount; ++idx)
-        {
-            var enemy = transform.GetChild(idx);
-            if (enemy.tag == "Enemy")
-            {
-                Destroy(enemy.gameObject);
-            }
-        }
-    }
-
 
     public void SetGrid()
     {
         elapsedTime = 0f;
         fireCount = 0;
         fireInterval = 0f;
-        ClearExistingEnemies();
 
-        var starty = 12;
-        var rowCount = 0;
-        var column = -4.5f;
+        enemyController.InitializeGameGrid();
 
-        foreach (var elem in gameGrid)
-        {
-            GameObject shipObject;
-            switch (rowCount)
-            {
-                case 0:
-                    shipObject = DoomdayShip;
-                    break;
-                case 1:
-                    shipObject = Enemy3Ship;
-                    break;
-                case 2:
-                    shipObject = Enemy1Ship;
-                    break;
-                case 3:
-                case 4:
-                    shipObject = Enemy2Ship;
-                    break;
-                default:
-                    shipObject = DoomdayShip;
-                    break;
-            }
-            if (elem == 1)
-            {
-                var newShip = Instantiate(shipObject, new Vector3(column, starty - (rowCount * .7f), 0), Quaternion.identity);
-                newShip.transform.parent = gameObject.transform;
-                if (topShip == null)
-                {
-                    topShip = newShip;
-                }
-            }
-            column += 1f;
-            if (column >= 4.5f)
-            {
-                // Debug.Log(string.Format("Column {0}", column));
-                column = -4.5f;
-                rowCount += 1;
-            }
-        }
         SetDisplayLevel();
-    }
-
-    private int EnemyCount()
-    {
-        var count = 0;
-        for (var idx = 0; idx < transform.childCount; ++idx)
-        {
-            var enemy = transform.GetChild(idx);
-            if (enemy.tag == "Enemy")
-            {
-                count += 1;
-            }
-        }
-
-        return count;
-    }
-
-    private void ResetShipsToTop()
-    {
-        for (var idx = 0; idx < transform.childCount; ++idx)
-        {
-            var enemy = transform.GetChild(idx);
-            if (enemy.tag == "Enemy")
-            {
-                var enemyScript = enemy.GetComponent<EnemyActions>();
-                if (enemyScript != null)
-                {
-                    enemyScript.Advance(23.0f);
-                }
-            }
-        }
     }
 
     private void FlyShipsInView()
@@ -399,31 +292,12 @@ public class GameGridManager : MonoBehaviour
         elapsedTime = 0f;
         elaspedTimeThresh = SMOOTH_TIME;
         _state = GameState.FlyInView;
-        EnemyAdvanceSpeed = SMOOTH_ADVANCE;
+        enemyController.EnemyAdvanceSpeed = SMOOTH_ADVANCE;
 
         levelDisplay.enabled = false;
         SetGameOverText(false);
     }
 
-    private void FindTopShip()
-    {
-        for (var idx = 0; idx < transform.childCount; ++idx)
-        {
-            var enemy = transform.GetChild(idx);
-            if (enemy.tag == "Enemy")
-            {
-                if (topShip == null)
-                {
-                    topShip = enemy.gameObject;
-                }
-                else if (enemy.transform.position.y > topShip.transform.position.y)
-                {
-                    topShip = enemy.gameObject;
-                }
-            }
-        }
-
-    }
     public void FlyOutOfView()
     {
         NumberOfLives -= 1;
@@ -432,7 +306,7 @@ public class GameGridManager : MonoBehaviour
         elapsedTime = 0f;
         elaspedTimeThresh = PAUSE;
         _state = GameState.FlyOutOfView;
-        EnemyAdvanceSpeed = SMOOTH_ADVANCE;
+        enemyController.EnemyAdvanceSpeed = SMOOTH_ADVANCE;
     }
 
     public void EarthDestroyed()
@@ -444,20 +318,36 @@ public class GameGridManager : MonoBehaviour
         }
     }
 
+    // ship controller functions
     public void AdvanceEnemies()
     {
-        Debug.Log(string.Format("Advance {0}", EnemyAdvanceSpeed));
-        for (var idx = 0; idx < transform.childCount; ++idx)
+        enemyController.AdvanceEnemies();
+    }
+
+    public void KillEnemy(GameObject enemyShip)
+    {
+        enemyController.KillEnemy(enemyShip);
+    }
+
+    private void FindTopShip()
+    {
+        topShip = enemyController.FindTopShip();
+    }
+
+    private void ResetShipsToTop()
+    {
+        enemyController.ResetShipsToTop();
+    }
+    private int EnemyCount()
+    {
+        return enemyController.EnemyCount();
+    }
+    private void CheckWeapons()
+    {
+        fireInterval = 0f;
+        if (enemyController.FireRandomWeapon())
         {
-            var enemy = transform.GetChild(idx);
-            if (enemy.tag == "Enemy")
-            {
-                var enemyScript = enemy.GetComponent<EnemyActions>();
-                if (enemyScript != null)
-                {
-                    enemyScript.Advance(EnemyAdvanceSpeed);
-                }
-            }
+            fireCount += 1;
         }
     }
 

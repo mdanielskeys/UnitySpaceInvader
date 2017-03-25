@@ -12,41 +12,12 @@ public class EnemyActions : MonoBehaviour
         _lastPos = transform.position;
     }
 
-    public void Update()
-    {
-        if (_manager.GetGameState() == GameGridManager.GameState.GameRunning)
-        {
-
-            _lastPos = transform.position;
-            if (_lastPos.x + _manager.marchSpeed > 4.5 || _lastPos.x + _manager.marchSpeed < -4.5)
-            {
-                _manager.marchSpeed *= -1;
-                _manager.AdvanceEnemies();
-            }
-            _lastPos.x += _manager.marchSpeed;
-
-            if (_lastPos.y + _manager.EnemyAdvanceSpeed < -5)
-            {
-                _manager.EarthDestroyed();
-            }
-        }
-        transform.position = _lastPos;
-    }
-
     public void DestroyedByPlayer()
     {
         if (_manager != null)
         {
             _manager.UpdatePlayerScore(150);
+            _manager.KillEnemy(gameObject);
         }
-        Destroy(gameObject);
     }
-
-    public void Advance(float y)
-    {
-        _lastPos = transform.position;
-        _lastPos.y += y;
-        transform.position = _lastPos;
-    }
-
 }

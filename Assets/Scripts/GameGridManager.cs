@@ -10,15 +10,6 @@ public class GameGridManager : MonoBehaviour
     private const float PAUSE = 4.0f;
     private const float SMOOTH_TIME = .01f;
     private const float LEVEL_DISPLAY_TIME = 2.0f;
-    private const float HIGH_SPEED_MARCH = 0.04f;
-    private const float MEDIUM_SPEED_MARCH = 0.02f;
-    private const float REG_SPEED_MARCH = 0.01f;
-    private const float HIGH_FIRE = 0.5f;
-    private const float MEDIUM_FIRE = 0.7f;
-    private const float REG_FIRE = 0.8f;
-    private const int HIGH_FIRE_RATE = 7;
-    private const int MED_FIRE_RATE = 5;
-    private const int LOW_FIRE_RATE = 3;
     public float marchSpeed;
     public int maxFireCount;
     public int NumberOfLives;
@@ -73,7 +64,8 @@ public class GameGridManager : MonoBehaviour
             Enemy1Ship = Enemy1Ship,
             Enemy2Ship = Enemy2Ship,
             Enemy3Ship = Enemy3Ship,
-            MarchSpeed = marchSpeed
+            MarchSpeed = marchSpeed,
+            MaxNumberOfShots = maxFireCount
         };
 
         SetGameOver();
@@ -96,44 +88,17 @@ public class GameGridManager : MonoBehaviour
 
         if (_state == GameState.GameRunning)
         {
-            if (enemyController.ShouldAdvance())
-            {                
-                enemyController.AdvanceEnemies();
-            }
-
-            var ecount = EnemyCount();
-            if (ecount <= 0)
+            if (EnemyCount() <= 0)
             {
                 if (elapsedTime > 5.0f)
                 {
                     AddGameLevel();
                 }
             }
-            else if (ecount < 10)
-            {
-                enemyController.MarchSpeed = HIGH_SPEED_MARCH;
-                maxFireCount = HIGH_FIRE_RATE;
-                fireThreshold = HIGH_FIRE;
-            }
-            else if (ecount < 20)
-            {
-                enemyController.MarchSpeed = MEDIUM_SPEED_MARCH;
-                maxFireCount = MED_FIRE_RATE;
-                fireThreshold = MEDIUM_FIRE;
-            }
-            else
-            {
-                enemyController.MarchSpeed = REG_SPEED_MARCH;
-                maxFireCount = LOW_FIRE_RATE;
-                fireThreshold = REG_FIRE;
-            }
 
-            fireInterval += Time.deltaTime;
-            if (fireInterval > 1 && fireCount < maxFireCount)
-            {
-                CheckWeapons();
-            }
-            enemyController.MarchEnemies();
+            CheckWeapons();
+
+            enemyController.UpdateShips();
         }
 
         if (_state == GameState.FlyInView)
@@ -272,15 +237,13 @@ public class GameGridManager : MonoBehaviour
 
     public void ReleaseBulletCount()
     {
-        fireCount = Math.Max(fireCount - 1, 0);
+        enemyController.CurrentShotCount = Math.Max(enemyController.CurrentShotCount - 1, 0);
     }
-
 
     public void SetGrid()
     {
         elapsedTime = 0f;
-        fireCount = 0;
-        fireInterval = 0f;
+        enemyController.CurrentShotCount = 0;
 
         enemyController.InitializeGameGrid();
 
@@ -344,11 +307,7 @@ public class GameGridManager : MonoBehaviour
     }
     private void CheckWeapons()
     {
-        fireInterval = 0f;
-        if (enemyController.FireRandomWeapon())
-        {
-            fireCount += 1;
-        }
+        enemyController.FireRandomWeapon(playerShipInstance.transform.position.x);
     }
 
 }

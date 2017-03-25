@@ -6,24 +6,26 @@ using UnityEngine;
 public class EnemyController : ScriptableObject {
     private readonly int[] _gameGrid =
     {
-        0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+        0, 0, 1, 1, 0, 0, 1, 1, 0, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+        0, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1
     };
 
     private List<GameObject> _enemyShips;
 
     public int StartYPos = 12;
     public float StartingColumn = -4.0f;
-    public int MaxColumnCount = 11;
+    public int MaxColumnCount = 10;
     public float ShipHSpacing = 0.8f;
     public float ShipVSpacing = 0.7f;
     public float EnemyAdvanceSpeed { get; set; }
-    public float FireThreshold = .8f;
+    public float FireThreshold = .9f;
     public float MarchSpeed = .7f;
     public int MarchDirection = 1;
+    public int MaxNumberOfShots { get; set; }
+    public int CurrentShotCount { get; set; }
 
     public GameObject DoomdayShip;
     public GameObject Enemy3Ship;
@@ -31,7 +33,23 @@ public class EnemyController : ScriptableObject {
     public GameObject Enemy2Ship;
     public GameObject GameManager;
 
-    private readonly float _topConst = 23f;
+    private float fireInterval;
+
+    private const float TopConst = 23f;
+    private const float MinSpeed = 0.005f;
+    private const float SpeedRange = 0.04f;
+    private const float FireThreshRange = 0.7f;
+
+    public void UpdateShips()
+    {
+        MarchSpeed = MinSpeed + (SpeedRange * ((_gameGrid.Length - _enemyShips.Count) / (float)_gameGrid.Length));
+        if (ShouldAdvance())
+        {
+            MarchDirection *= -1;
+            AdvanceEnemies();
+        }
+        MarchEnemies();
+    }
 
     public bool AreEnemiesInStartPos()
     {
@@ -99,7 +117,6 @@ public class EnemyController : ScriptableObject {
     public void AdvanceEnemies()
     {
         if (_enemyShips == null) return;
-        MarchDirection *= -1;
 
         foreach (var enemy in _enemyShips)
         {
@@ -116,20 +133,25 @@ public class EnemyController : ScriptableObject {
         foreach (var enemy in _enemyShips)
         {
             var pos = enemy.transform.position;
-            pos.y += _topConst;
+            pos.y += TopConst;
             enemy.transform.position = pos;
         }
     }
 
-    public bool FireRandomWeapon()
+    public bool FireRandomWeapon(float playerXPos)
     {
+        fireInterval += Time.deltaTime;
+        if (fireInterval < 1.0f) return false;
+        if (CurrentShotCount >= MaxNumberOfShots) return false;
         if (_enemyShips == null) return false;
 
-        if (Random.value > FireThreshold)
+
+        var wkThreshold = FireThreshold;
+        foreach (var enemy in _enemyShips)
         {
-            var idx = (int) (Random.value * _enemyShips.Count);
-            var enemy = _enemyShips[idx];
-            if (enemy != null)
+            var pos = enemy.transform.position;
+            var distance = Mathf.Abs(playerXPos - pos.x);            
+            if (distance < 0.4)
             {
                 var enemyScript = enemy.GetComponent<EnemyActions>();
                 if (enemyScript != null)
@@ -137,6 +159,8 @@ public class EnemyController : ScriptableObject {
                     var tranform = enemy.transform;
                     var bullet = Instantiate(enemyScript.EnemyBullet, tranform.position, Quaternion.identity);
                     bullet.transform.parent = GameManager.transform;
+                    CurrentShotCount += 1;
+                    fireInterval = 0f;
                     return true;
                 }
             }
@@ -209,5 +233,6 @@ public class EnemyController : ScriptableObject {
                 rowCount += 1;
             }
         }
+        _enemyShips.Reverse();
     }
 }

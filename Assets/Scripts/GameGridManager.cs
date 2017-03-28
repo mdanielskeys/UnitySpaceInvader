@@ -25,6 +25,8 @@ public class GameGridManager : MonoBehaviour
     public Canvas GameOver;
     public Canvas PlayScreen;
     public AudioEvent BonusShipAudio;
+    public AudioEvent GameMusic;
+    public GameObject GameMusicSource;
 
     private Canvas GameCreditsInstance;
     private Canvas GameOverInstance;
@@ -63,6 +65,8 @@ public class GameGridManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        GameMusicSource = Instantiate(GameMusicSource);
+
         GameCreditsInstance = Instantiate(GameCredits);
         GameCreditsInstance.gameObject.SetActive(false);
 
@@ -229,6 +233,15 @@ public class GameGridManager : MonoBehaviour
     private void AddGameLevel()
     {
         gameLevel += 1;
+        if (gameLevel == 3)
+        {
+            enemyController.MaxNumberOfShots += 1;
+        }
+        else if (gameLevel == 5)
+        {
+            enemyController.MaxNumberOfShots += 1;
+        }
+
         SetGrid();
     }
 
@@ -251,6 +264,9 @@ public class GameGridManager : MonoBehaviour
     public void SetGameOver()
     {
         SetGameOverText(true);
+
+        GameMusicSource.GetComponent<AudioSource>().loop = false;
+
         _state = GameState.GameOver;
     }
 
@@ -307,6 +323,7 @@ public class GameGridManager : MonoBehaviour
         WritePlayerCount();
         SetGameOverText(false);
         InstantiateNewPlayer();
+        GameMusic.Play(GameMusicSource.GetComponent<AudioSource>());
 
         _manager.SetGrid();
         ResetPlayerScore();
@@ -339,6 +356,7 @@ public class GameGridManager : MonoBehaviour
         elaspedTimeThresh = SMOOTH_TIME;
         _state = GameState.FlyInView;
         enemyController.EnemyAdvanceSpeed = SMOOTH_ADVANCE;
+
 
         LevelDisplayText.enabled = false;
         SetGameOverText(false);

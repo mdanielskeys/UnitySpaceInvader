@@ -10,6 +10,7 @@ public class BulletLife : MonoBehaviour
     public AudioClip fireSound;
     private AudioSource _audioSouce;
     public AudioEvent m_EnemyFireEvent;
+    public AudioEvent m_PlayerFireEvent;
 
     // Use this for initialization
     void Start () {
@@ -22,12 +23,12 @@ public class BulletLife : MonoBehaviour
         }
         else if (_audioSouce != null)
         {
-            _audioSouce.PlayOneShot(fireSound);
+            m_PlayerFireEvent.Play(_audioSouce);
         }
 
         if (EnemyTag == "Player")
         {
-            _rb2D.AddForce(new Vector2(0, -4), ForceMode2D.Impulse);
+            _rb2D.AddForce(new Vector2(0, Random.Range(-3,-5)), ForceMode2D.Impulse);
         }
         else
         {

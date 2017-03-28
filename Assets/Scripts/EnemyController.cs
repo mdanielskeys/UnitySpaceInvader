@@ -32,7 +32,6 @@ public class EnemyController : ScriptableObject {
     public GameObject Enemy1Ship;
     public GameObject Enemy2Ship;
     public GameObject GameManager;
-
     private float fireInterval;
 
     private const float TopConst = 23f;

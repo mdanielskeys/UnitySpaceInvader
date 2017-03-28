@@ -5,8 +5,11 @@ using Random = UnityEngine.Random;
 
 public class GameGridManager : MonoBehaviour
 {
+    private const int FIRST_BONUS_AMOUNT = 20000;
+    private const int SECOND_BONUS_AMOUNT = 40000;
     private const float SMOOTH_ADVANCE = -0.06f;
     private const float REGULAR_ADVANCE = -0.2f;
+    private const float SMOOTH_TEXT_ADVANCE = 10.0f;
     private const float PAUSE = 4.0f;
     private const float SMOOTH_TIME = .01f;
     private const float LEVEL_DISPLAY_TIME = 2.0f;
@@ -18,12 +21,17 @@ public class GameGridManager : MonoBehaviour
     public GameObject Enemy1Ship;
     public GameObject Enemy2Ship;
     public GameObject Enemy3Ship;
-    public Canvas gameOver;
-    public Text gameOverText;
-    public Text instructionText;
-    public Text playerScoreText;
-    public Text levelDisplay;
-    public Text playerCount;
+    public Canvas GameCredits;
+    public Canvas GameOver;
+    public Canvas PlayScreen;
+    public AudioEvent BonusShipAudio;
+
+    private Canvas GameCreditsInstance;
+    private Canvas GameOverInstance;
+    private Canvas PlayScreenInstance;
+    private Text ScoreText;
+    private Text LevelDisplayText;
+    private Text PlayerCount;
 
     private float fireThreshold;
     private int gameLevel;
@@ -32,8 +40,9 @@ public class GameGridManager : MonoBehaviour
     private float elapsedTime;
     private int fireCount;
     private float fireInterval;
+    private bool displayCredits;
+    private int PlayerShipBonus;
 
-    private GameObject topShip;
     private GameObject playerShipInstance;
     private EnemyController enemyController;
 
@@ -43,7 +52,8 @@ public class GameGridManager : MonoBehaviour
         GameRunning = 2,
         FlyInView = 3,
         FlyOutOfView,
-        DisplayLevel
+        DisplayLevel,
+        AnimateCredits
     };
 
     private GameState _state;
@@ -53,7 +63,30 @@ public class GameGridManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        levelDisplay.enabled = false;
+        GameCreditsInstance = Instantiate(GameCredits);
+        GameCreditsInstance.gameObject.SetActive(false);
+
+        GameOverInstance = Instantiate(GameOver);
+        GameOverInstance.gameObject.SetActive(true);
+
+        PlayScreenInstance = Instantiate(PlayScreen);
+        PlayScreenInstance.gameObject.SetActive(false);
+        var playText = PlayScreenInstance.GetComponentsInChildren<Text>();
+        foreach (var text in playText)
+        {
+            if (text.name == "ScoreText")
+            {
+                ScoreText = text;
+            }
+            else if (text.name == "LevelDisplayText")
+            {
+                LevelDisplayText = text;
+            }
+            else if (text.name == "PlayerCount")
+            {
+                PlayerCount = text;
+            }
+        }
 
         _manager = GetComponent<GameGridManager>();
 
@@ -68,15 +101,48 @@ public class GameGridManager : MonoBehaviour
             MaxNumberOfShots = maxFireCount
         };
 
+        displayCredits = false;
         SetGameOver();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1) && _state == GameState.GameOver)
+        elapsedTime += Time.deltaTime;
+
+        if (_state == GameState.GameOver)
         {
-            StartLevel1();
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                StartLevel1();
+            }
+            if (elapsedTime > 6.0f)
+            {
+                elapsedTime = 0f;
+                ToggleCredits();
+            }
+        }
+
+        if (_state == GameState.AnimateCredits)
+        {
+            var goPos = GameOverInstance.gameObject.transform.localPosition;
+            var gcPos = GameCreditsInstance.gameObject.transform.localPosition;
+
+            
+            goPos.y -= SMOOTH_TEXT_ADVANCE;
+            gcPos.y -= SMOOTH_TEXT_ADVANCE;
+
+            if (displayCredits && gcPos.y <= 500.0f)
+            {
+                _state = GameState.GameOver;
+            }
+            else if (!displayCredits && goPos.y >= 500.0f)
+            {
+                _state = GameState.GameOver;
+            }
+
+            GameOverInstance.gameObject.transform.localPosition = goPos;
+            GameCreditsInstance.gameObject.transform.localPosition = gcPos;
         }
 
         if (Input.GetKeyUp(KeyCode.Escape))
@@ -84,7 +150,6 @@ public class GameGridManager : MonoBehaviour
             Application.Quit();    
         }
 
-        elapsedTime += Time.deltaTime;
 
         if (_state == GameState.GameRunning)
         {
@@ -153,6 +218,14 @@ public class GameGridManager : MonoBehaviour
         }
     }
 
+    private void ToggleCredits()
+    {
+        displayCredits = !displayCredits;
+
+        GameOverInstance.gameObject.SetActive(displayCredits);
+        GameCreditsInstance.gameObject.SetActive(!displayCredits);
+    }
+
     private void AddGameLevel()
     {
         gameLevel += 1;
@@ -164,14 +237,15 @@ public class GameGridManager : MonoBehaviour
         _state = GameState.DisplayLevel;
         elaspedTimeThresh = LEVEL_DISPLAY_TIME;
         elapsedTime = 0f;
-        levelDisplay.enabled = true;
+        LevelDisplayText.enabled = true;
         WriteGameLevel();
     }
 
     private void SetGameOverText(bool isOn)
     {
-        gameOverText.enabled = isOn;
-        instructionText.enabled = isOn;
+        GameOverInstance.gameObject.SetActive(isOn);
+        GameCreditsInstance.gameObject.SetActive(isOn && displayCredits);
+        PlayScreenInstance.gameObject.SetActive(!isOn);
     }
 
     public void SetGameOver()
@@ -197,15 +271,23 @@ public class GameGridManager : MonoBehaviour
     {
         playerScore += pointValue;
         WritePlayerScore();
+
+        if (playerScore > PlayerShipBonus)
+        {
+            PlayerShipBonus += SECOND_BONUS_AMOUNT;
+            NumberOfLives += 1;
+            BonusShipAudio.Play(GetComponent<AudioSource>());
+            WritePlayerCount();
+        }
     }
 
     private void WritePlayerCount()
     {
-        playerCount.text = string.Format("Player Ships: {0:d2}", NumberOfLives);
+        PlayerCount.text = string.Format("Player Ships: {0:d2}", NumberOfLives);
     }
     private void WritePlayerScore()
     {
-        playerScoreText.text = string.Format("Score: {0:d8}", playerScore);
+        ScoreText.text = string.Format("Score: {0:d8}", playerScore);
     }
 
     private void WriteGameLevel()
@@ -213,13 +295,14 @@ public class GameGridManager : MonoBehaviour
         _state = GameState.DisplayLevel;
         elapsedTime = 0;
         elaspedTimeThresh = LEVEL_DISPLAY_TIME;
-        levelDisplay.enabled = true;
+        LevelDisplayText.enabled = true;
 
-        levelDisplay.text = string.Format("Level: {0:d3}", gameLevel);
+        LevelDisplayText.text = string.Format("Level: {0:d3}", gameLevel);
     }
 
     private void StartLevel1()
     {
+        PlayerShipBonus = FIRST_BONUS_AMOUNT;
         NumberOfLives = 3;
         WritePlayerCount();
         SetGameOverText(false);
@@ -257,7 +340,7 @@ public class GameGridManager : MonoBehaviour
         _state = GameState.FlyInView;
         enemyController.EnemyAdvanceSpeed = SMOOTH_ADVANCE;
 
-        levelDisplay.enabled = false;
+        LevelDisplayText.enabled = false;
         SetGameOverText(false);
     }
 
@@ -294,7 +377,7 @@ public class GameGridManager : MonoBehaviour
 
     private void FindTopShip()
     {
-        topShip = enemyController.FindTopShip();
+        enemyController.FindTopShip();
     }
 
     private void ResetShipsToTop()

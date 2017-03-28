@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 52531256e1fe0b943a1b8f598ffdaa1b
-timeCreated: 1489948751
+timeCreated: 1490662040
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -8,6 +8,7 @@ TextureImporter:
     21300002: Bullets_1
     21300004: Bullets_2
     21300006: EnemyPulse
+    21300008: Bullets_3
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -127,6 +128,19 @@ TextureImporter:
         x: 279
         y: 145
         width: 8
+        height: 11
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Bullets_3
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 145
+        width: 9
         height: 11
       alignment: 0
       pivot: {x: 0.5, y: 0.5}

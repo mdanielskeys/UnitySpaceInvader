@@ -31,6 +31,14 @@ public class MoveShip : MonoBehaviour
 
     private bool CanFire()
     {
+        if (_manager != null)
+        {
+            if (_manager.GetGameState() != GameGridManager.GameState.GameRunning)
+            {
+                return false;
+            }
+        }
+
         return bulletCount < MaxScreenBullets;
     }
 

@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ScrollField : MonoBehaviour
 {
-
     public float Parallax = 2f;
+
 	// Update is called once per frame
 	void Update ()
 	{
@@ -13,7 +13,7 @@ public class ScrollField : MonoBehaviour
 	    var mat = mr.material;
 
 	    var offset = mat.mainTextureOffset;
-	    offset.y += Time.deltaTime / 10 / Parallax;
+	    offset.y += (Time.deltaTime / 5) / Parallax;
 
 	    mat.mainTextureOffset = offset;
 	}

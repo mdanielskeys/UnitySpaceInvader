@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Runtime.InteropServices;
+using UnityEngine;
 
 public class EnemyActions : MonoBehaviour
 {
     public GameObject EnemyBullet;
     private GameGridManager _manager;
     private Vector2 _lastPos;
+    public int ShipValue;
 
     public void Start()
     {
@@ -16,7 +18,7 @@ public class EnemyActions : MonoBehaviour
     {
         if (_manager != null)
         {
-            _manager.UpdatePlayerScore(150);
+            _manager.UpdatePlayerScore(ShipValue);
             _manager.KillEnemy(gameObject);
         }
     }

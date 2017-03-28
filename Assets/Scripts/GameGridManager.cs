@@ -318,6 +318,9 @@ public class GameGridManager : MonoBehaviour
 
     private void StartLevel1()
     {
+        enemyController.MaxNumberOfShots = maxFireCount;
+        enemyController.MarchSpeed = marchSpeed;
+
         PlayerShipBonus = FIRST_BONUS_AMOUNT;
         NumberOfLives = 3;
         WritePlayerCount();

@@ -1,40 +1,43 @@
 ﻿using UnityEngine;
 
-public class ShipCollision : MonoBehaviour
+namespace Assets.Scripts
 {
-
-    public GameObject ShipExplosion;
-    private GameGridManager _manager;
-
-    void Start()
+    public class ShipCollision : MonoBehaviour
     {
-        _manager = GetComponentInParent<GameGridManager>();
-    }
 
+        public GameObject ShipExplosion;
+        private GameGridManager _manager;
 
-    public void PlayerHit(GameGridManager manager)
-    {
-        manager.FlyOutOfView();
-        var v3 = gameObject.transform.position;
-        Instantiate(ShipExplosion, v3, Quaternion.identity);
-        Destroy(gameObject);
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.tag == "EnemyFire" || other.tag == "Enemy")
+        void Start()
         {
-            if (_manager != null)
-            {
-                //Debug.Log("Call SetGameOver");
-                // _manager.FlyOutOfView();
-            }
+            _manager = GetComponentInParent<GameGridManager>();
+        }
 
-            var v3 = other.gameObject.transform.position;
-            Destroy(other.gameObject);
+
+        public void PlayerHit(GameGridManager manager)
+        {
+            manager.FlyOutOfView();
+            var v3 = gameObject.transform.position;
             Instantiate(ShipExplosion, v3, Quaternion.identity);
             Destroy(gameObject);
-
         }
-    }   
+
+        void OnTriggerEnter2D(Collider2D other)
+        {
+            if (other.tag == "EnemyFire" || other.tag == "Enemy")
+            {
+                if (_manager != null)
+                {
+                    //Debug.Log("Call SetGameOver");
+                    // _manager.FlyOutOfView();
+                }
+
+                var v3 = other.gameObject.transform.position;
+                Destroy(other.gameObject);
+                Instantiate(ShipExplosion, v3, Quaternion.identity);
+                Destroy(gameObject);
+
+            }
+        }   
+    }
 }

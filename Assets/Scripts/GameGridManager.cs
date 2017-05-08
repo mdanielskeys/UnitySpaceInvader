@@ -1,5 +1,7 @@
 ﻿using System;
+using Assets.Scripts;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameGridManager : MonoBehaviour
@@ -14,21 +16,16 @@ public class GameGridManager : MonoBehaviour
     private const float LEVEL_DISPLAY_TIME = 2.0f;
     public float marchSpeed;
     public int maxFireCount;
-    public int NumberOfLives;
 
     public GameObject DoomdayShip;
     public GameObject Enemy1Ship;
     public GameObject Enemy2Ship;
     public GameObject Enemy3Ship;
-    public Canvas GameCredits;
-    public Canvas GameOver;
     public Canvas PlayScreen;
     public AudioEvent BonusShipAudio;
     public AudioEvent GameMusic;
     public GameObject GameMusicSource;
 
-    private Canvas GameCreditsInstance;
-    private Canvas GameOverInstance;
     private Canvas PlayScreenInstance;
     private Text ScoreText;
     private Text LevelDisplayText;
@@ -42,9 +39,7 @@ public class GameGridManager : MonoBehaviour
     private int fireCount;
     private float fireInterval;
     private bool displayCredits;
-    private int PlayerShipBonus;
 
-    private GameObject playerShipInstance;
     private EnemyController enemyController;
 
     public enum GameState
@@ -59,18 +54,11 @@ public class GameGridManager : MonoBehaviour
 
     private GameState _state;
     private GameGridManager _manager;
-    public GameObject Playership;
 
     // Use this for initialization
     void Start()
     {
         GameMusicSource = Instantiate(GameMusicSource);
-
-        GameCreditsInstance = Instantiate(GameCredits);
-        GameCreditsInstance.gameObject.SetActive(false);
-
-        GameOverInstance = Instantiate(GameOver);
-        GameOverInstance.gameObject.SetActive(true);
 
         PlayScreenInstance = Instantiate(PlayScreen);
         PlayScreenInstance.gameObject.SetActive(false);
@@ -105,48 +93,13 @@ public class GameGridManager : MonoBehaviour
         };
 
         displayCredits = false;
-        SetGameOver();
+        StartLevel1();
     }
 
     // Update is called once per frame
     void Update()
     {
         elapsedTime += Time.deltaTime;
-
-        if (_state == GameState.GameOver)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                StartLevel1();
-            }
-            if (elapsedTime > 6.0f)
-            {
-                elapsedTime = 0f;
-                ToggleCredits();
-            }
-        }
-
-        if (_state == GameState.AnimateCredits)
-        {
-            var goPos = GameOverInstance.gameObject.transform.localPosition;
-            var gcPos = GameCreditsInstance.gameObject.transform.localPosition;
-
-            
-            goPos.y -= SMOOTH_TEXT_ADVANCE;
-            gcPos.y -= SMOOTH_TEXT_ADVANCE;
-
-            if (displayCredits && gcPos.y <= 500.0f)
-            {
-                _state = GameState.GameOver;
-            }
-            else if (!displayCredits && goPos.y >= 500.0f)
-            {
-                _state = GameState.GameOver;
-            }
-
-            GameOverInstance.gameObject.transform.localPosition = goPos;
-            GameCreditsInstance.gameObject.transform.localPosition = gcPos;
-        }
 
         if (Input.GetKeyUp(KeyCode.Escape))
         {
@@ -156,6 +109,12 @@ public class GameGridManager : MonoBehaviour
 
         if (_state == GameState.GameRunning)
         {
+            if (!PlayerManager.Instance.IsAlive)
+            {
+                FlyOutOfView();
+                return;
+            }
+
             if (EnemyCount() <= 0)
             {
                 if (elapsedTime > 5.0f)
@@ -200,7 +159,7 @@ public class GameGridManager : MonoBehaviour
             {
                 if (enemyController.AreEnemiesInOffscreenPos())
                 {
-                    if (NumberOfLives > 0)
+                    if (PlayerManager.Instance.GetLivesLeft() > 0)
                     {
                         ResetShipsToTop();
                         InstantiateNewPlayer();
@@ -224,9 +183,6 @@ public class GameGridManager : MonoBehaviour
     private void ToggleCredits()
     {
         displayCredits = !displayCredits;
-
-        GameOverInstance.gameObject.SetActive(displayCredits);
-        GameCreditsInstance.gameObject.SetActive(!displayCredits);
     }
 
     private void AddGameLevel()
@@ -255,18 +211,12 @@ public class GameGridManager : MonoBehaviour
 
     private void SetGameOverText(bool isOn)
     {
-        GameOverInstance.gameObject.SetActive(isOn);
-        GameCreditsInstance.gameObject.SetActive(isOn && displayCredits);
         PlayScreenInstance.gameObject.SetActive(!isOn);
     }
 
     public void SetGameOver()
     {
-        SetGameOverText(true);
-
-        GameMusicSource.GetComponent<AudioSource>().loop = false;
-
-        _state = GameState.GameOver;
+        SceneManager.LoadScene(0, LoadSceneMode.Single);
     }
 
     public GameState GetGameState()
@@ -287,6 +237,7 @@ public class GameGridManager : MonoBehaviour
         playerScore += pointValue;
         WritePlayerScore();
 
+		/*
         if (playerScore > PlayerShipBonus)
         {
             PlayerShipBonus += SECOND_BONUS_AMOUNT;
@@ -294,11 +245,12 @@ public class GameGridManager : MonoBehaviour
             BonusShipAudio.Play(GetComponent<AudioSource>());
             WritePlayerCount();
         }
+        */
     }
 
     private void WritePlayerCount()
     {
-        PlayerCount.text = string.Format("Player Ships: {0:d2}", NumberOfLives);
+        PlayerCount.text = string.Format("Player Ships: {0:d2}", PlayerManager.Instance.GetLivesLeft());
     }
     private void WritePlayerScore()
     {
@@ -320,8 +272,7 @@ public class GameGridManager : MonoBehaviour
         enemyController.MaxNumberOfShots = maxFireCount;
         enemyController.MarchSpeed = marchSpeed;
 
-        PlayerShipBonus = FIRST_BONUS_AMOUNT;
-        NumberOfLives = 3;
+        //PlayerShipBonus = FIRST_BONUS_AMOUNT;
         WritePlayerCount();
         SetGameOverText(false);
         InstantiateNewPlayer();
@@ -333,8 +284,10 @@ public class GameGridManager : MonoBehaviour
 
     private void InstantiateNewPlayer()
     {
-        playerShipInstance = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
-        playerShipInstance.transform.parent = gameObject.transform;
+		Debug.Log ("InstantiateNewPlayer");
+		PlayerManager.Instance.PlayerStart();
+        //playerShipInstance = Instantiate(Playership, new Vector3(0, -4, 0), Quaternion.identity);
+        //playerShipInstance.transform.parent = gameObject.transform;
     }
 
     public void ReleaseBulletCount()
@@ -366,7 +319,6 @@ public class GameGridManager : MonoBehaviour
 
     public void FlyOutOfView()
     {
-        NumberOfLives -= 1;
         WritePlayerCount();
         FindTopShip();
         elapsedTime = 0f;
@@ -377,11 +329,13 @@ public class GameGridManager : MonoBehaviour
 
     public void EarthDestroyed()
     {
+		/*
         var shipManager = playerShipInstance.GetComponent<ShipCollision>();
         if (shipManager != null)
         {
             shipManager.PlayerHit(this);
         }
+        */
     }
 
     // ship controller functions
@@ -410,7 +364,7 @@ public class GameGridManager : MonoBehaviour
     }
     private void CheckWeapons()
     {
-        enemyController.FireRandomWeapon(playerShipInstance.transform.position.x);
+        //enemyController.FireRandomWeapon(playerShipInstance.transform.position.x);
     }
 
 }

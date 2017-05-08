@@ -1,22 +1,25 @@
 ﻿using UnityEngine;
 using Random = UnityEngine.Random;
 
-[CreateAssetMenu(menuName = "Audio Events/Simple")]
-public class SimpleAudioEvent : AudioEvent
+namespace Assets.Scripts
 {
-    public AudioClip[] clips;
-    public RangedFloat volume;
-
-    [MinMaxRange(0, 2)] public RangedFloat pitch;
-
-    public override void Play(AudioSource source)
+    [CreateAssetMenu(menuName = "Audio Events/Simple")]
+    public class SimpleAudioEvent : AudioEvent
     {
-        if (clips.Length == 0) return;
+        public AudioClip[] Clips;
+        public RangedFloat Volume;
 
-        source.clip = clips[Random.Range(0, clips.Length)];
-        source.volume = Random.Range(volume.minValue, volume.maxValue);
-        source.pitch = Random.Range(pitch.minValue, pitch.maxValue);
+        [MinMaxRange(0, 2)] public RangedFloat Pitch;
 
-        source.Play();
+        public override void Play(AudioSource source)
+        {
+            if (Clips.Length == 0) return;
+
+            source.clip = Clips[Random.Range(0, Clips.Length)];
+            source.volume = Random.Range(Volume.minValue, Volume.maxValue);
+            source.pitch = Random.Range(Pitch.minValue, Pitch.maxValue);
+
+            source.Play();
+        }
     }
 }

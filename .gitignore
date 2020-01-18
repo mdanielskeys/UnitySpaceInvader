@@ -11,7 +11,10 @@ sysinfo.txt
 /Assets/AssetStoreTools*
 *.apk
 *.unitypackage
- 
+/spcint_Data
+*.exe
+*.dll
+
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
 # ===================================== #

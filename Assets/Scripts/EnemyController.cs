@@ -162,7 +162,7 @@ public class EnemyController : ScriptableObject {
                     var tranform = enemy.transform;
                     var bullet = Instantiate(enemyScript.EnemyBullet, tranform.position, Quaternion.identity);
                     bullet.transform.parent = GameManager.transform;
-                    CurrentShotCount += 1;
+                    //CurrentShotCount += 1;
                     fireInterval = 0f;
                     return true;
                 }

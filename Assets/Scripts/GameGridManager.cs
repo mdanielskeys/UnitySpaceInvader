@@ -364,7 +364,7 @@ public class GameGridManager : MonoBehaviour
     }
     private void CheckWeapons()
     {
-        //enemyController.FireRandomWeapon(playerShipInstance.transform.position.x);
+        enemyController.FireRandomWeapon(PlayerManager.Instance.GetXPos());
     }
 
 }

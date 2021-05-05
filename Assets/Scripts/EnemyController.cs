@@ -21,7 +21,7 @@ public class EnemyController : ScriptableObject {
     public float ShipVSpacing = 0.7f;
     public float EnemyAdvanceSpeed { get; set; }
     public float FireThreshold = .9f;
-    public float MarchSpeed = .7f;
+    public float MarchSpeed = .07f;
     public int MarchDirection = 1;
     public int MaxNumberOfShots { get; set; }
     public int CurrentShotCount { get; set; }
